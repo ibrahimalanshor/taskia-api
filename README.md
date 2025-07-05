@@ -1,7 +1,7 @@
 # taskia-api
 
-- [ ] Setup project
-- [ ] Setup server
+- [x] Setup project
+- [x] Setup server
 - [ ] Endpoint login with google
 - [ ] Get google info
 - [ ] Create or update user by google info
