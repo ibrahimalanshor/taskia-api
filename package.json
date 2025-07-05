@@ -1,0 +1,26 @@
+{
+  "name": "taskia-api",
+  "version": "1.0.0",
+  "description": "- [ ] Setup project - [ ] Setup server - [ ] Endpoint login with google - [ ] Get google info - [ ] Create or update user by google info - [ ] Generate user access token - [ ] Endpoint task resources - [ ] Task repository",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ibrahimalanshor/taskia-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ibrahimalanshor/taskia-api/issues"
+  },
+  "homepage": "https://github.com/ibrahimalanshor/taskia-api#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
