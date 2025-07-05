@@ -1,3 +1,10 @@
-const msg: string = 'Hi'
+import 'dotenv/config';
+import express from 'express';
 
-console.log(msg)
+const port = process.env.PORT;
+
+const server = express();
+
+server.listen(port, () => {
+  console.log(`server running on ${port}`);
+});
