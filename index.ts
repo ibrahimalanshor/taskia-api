@@ -4,10 +4,12 @@ import { google } from 'googleapis';
 import morgan from 'morgan';
 import z from 'zod';
 import cors from 'cors';
+import Database from 'better-sqlite3';
 
 const port = process.env.PORT;
 
 const server = express();
+const db = new Database('taskia.db');
 
 server.use(cors());
 server.use(express.json());
@@ -25,6 +27,39 @@ const googleAuth = google.oauth2({
 const googleLoginSchema = z.object({
   code: z.string().min(10),
 });
+
+interface AuthResult {
+  user: {
+    id: number | bigint;
+    name: string;
+    email: string;
+  };
+  accessToken: string;
+}
+
+async function register(googleAccount: {
+  id: string;
+  name: string;
+  email: string;
+}): Promise<AuthResult> {
+  const createUserStmt = db.prepare(
+    'INSERT INTO users (google_id, name, email) VALUES (?, ?, ?)',
+  );
+  const createdUser = createUserStmt.run(
+    googleAccount.id,
+    googleAccount.name,
+    googleAccount.email,
+  );
+
+  return {
+    user: {
+      id: createdUser.lastInsertRowid,
+      name: googleAccount.name,
+      email: googleAccount.email,
+    },
+    accessToken: 'blah',
+  };
+}
 
 server.post(
   '/login/google',
@@ -50,43 +85,30 @@ server.post(
 
     googleAuthClient.setCredentials(tokens);
 
-    const user = await googleAuth.userinfo.get();
+    const googleAccount = await googleAuth.userinfo.get();
 
-    // {
-    //   "size": 0,
-    //   "data": {
-    //       "id": "118165177496323926675",
-    //       "email": "ibrahimalanshor6@gmail.com",
-    //       "verified_email": true,
-    //       "name": "Ibrahim Al Anshor",
-    //       "given_name": "Ibrahim",
-    //       "family_name": "Al Anshor",
-    //       "picture": "https://lh3.googleusercontent.com/a/ACg8ocJEpoYsG0Cyp3kOSFzB6nPYsZ-0mANV3Il3v9DwTwlDz51wBiYV=s96-c"
-    //   },
-    //   "config": {
-    //       "url": "https://www.googleapis.com/oauth2/v2/userinfo",
-    //       "method": "GET",
-    //       "apiVersion": "",
-    //       "userAgentDirectives": [
-    //           {
-    //               "product": "google-api-nodejs-client",
-    //               "version": "8.0.2-rc.0",
-    //               "comment": "gzip"
-    //           }
-    //       ],
-    //       "headers": {},
-    //       "retry": true,
-    //       "responseType": "unknown"
-    //   },
-    //   "headers": {}
-    // }
+    if (
+      !googleAccount.data.id ||
+      !googleAccount.data.name ||
+      !googleAccount.data.email
+    ) {
+      throw new Error('error getting google acount data');
+    }
 
-    const accessToken = 'vaano';
+    const getUserStmt = db.prepare('SELECT * FROM users WHERE email = ?');
+    const user = getUserStmt.get(googleAccount.data.email);
 
-    res.json({
-      user,
-      accessToken,
-    });
+    if (!user) {
+      res.json(
+        await register({
+          id: googleAccount.data.id,
+          name: googleAccount.data.name,
+          email: googleAccount.data.email,
+        }),
+      );
+
+      return;
+    }
   },
 );
 
