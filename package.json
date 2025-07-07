@@ -21,6 +21,7 @@
   "homepage": "https://github.com/ibrahimalanshor/taskia-api#readme",
   "devDependencies": {
     "@eslint/js": "^9.30.1",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/morgan": "^1.9.10",
@@ -38,6 +39,7 @@
     "*.{ts,js}": "eslint --cache --fix"
   },
   "dependencies": {
+    "better-sqlite3": "^12.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
