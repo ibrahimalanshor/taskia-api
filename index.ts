@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import z from 'zod';
 import cors from 'cors';
 import Database from 'better-sqlite3';
+import jwt from 'jsonwebtoken';
 
 const port = process.env.PORT;
 
@@ -42,7 +43,11 @@ interface AuthResult {
 async function generateAuthResult(user: User): Promise<AuthResult> {
   return {
     user,
-    accessToken: 'blah',
+    accessToken: await jwt.sign(
+      { user_id: user.id },
+      process.env.SECRET_KEY || 'secret',
+      { expiresIn: '15m' },
+    ),
   };
 }
 async function register(googleAccount: {
