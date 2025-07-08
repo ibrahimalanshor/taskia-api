@@ -28,15 +28,23 @@ const googleLoginSchema = z.object({
   code: z.string().min(10),
 });
 
+interface User {
+  id: number | bigint;
+  name: string;
+  email: string;
+  google_id: string;
+}
 interface AuthResult {
-  user: {
-    id: number | bigint;
-    name: string;
-    email: string;
-  };
+  user: User;
   accessToken: string;
 }
 
+async function generateAuthResult(user: User): Promise<AuthResult> {
+  return {
+    user,
+    accessToken: 'blah',
+  };
+}
 async function register(googleAccount: {
   id: string;
   name: string;
@@ -51,14 +59,12 @@ async function register(googleAccount: {
     googleAccount.email,
   );
 
-  return {
-    user: {
-      id: createdUser.lastInsertRowid,
-      name: googleAccount.name,
-      email: googleAccount.email,
-    },
-    accessToken: 'blah',
-  };
+  return await generateAuthResult({
+    id: createdUser.lastInsertRowid,
+    name: googleAccount.name,
+    email: googleAccount.email,
+    google_id: googleAccount.id,
+  });
 }
 
 server.post(
@@ -92,11 +98,11 @@ server.post(
       !googleAccount.data.name ||
       !googleAccount.data.email
     ) {
-      throw new Error('error getting google acount data');
+      throw new Error('Error getting google acount data');
     }
 
     const getUserStmt = db.prepare('SELECT * FROM users WHERE email = ?');
-    const user = getUserStmt.get(googleAccount.data.email);
+    const user = getUserStmt.get(googleAccount.data.email) as User | undefined;
 
     if (!user) {
       res.json(
@@ -109,6 +115,14 @@ server.post(
 
       return;
     }
+
+    if (user.google_id !== googleAccount.data.id) {
+      throw new Error('The email is already used');
+    }
+
+    res.json(await generateAuthResult(user));
+
+    return;
   },
 );
 
