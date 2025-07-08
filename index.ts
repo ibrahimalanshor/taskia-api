@@ -103,7 +103,11 @@ server.post(
       !googleAccount.data.name ||
       !googleAccount.data.email
     ) {
-      throw new Error('Error getting google acount data');
+      res.status(400).json({
+        message: 'Error getting google acount data',
+      });
+
+      return;
     }
 
     const getUserStmt = db.prepare('SELECT * FROM users WHERE email = ?');
@@ -122,7 +126,11 @@ server.post(
     }
 
     if (user.google_id !== googleAccount.data.id) {
-      throw new Error('The email is already used');
+      res.status(400).json({
+        message: 'The email is already used',
+      });
+
+      return;
     }
 
     res.json(await generateAuthResult(user));
@@ -130,6 +138,10 @@ server.post(
     return;
   },
 );
+
+server.get('/tasks', (req: express.Request, res: express.Response) => {
+  res.json([]);
+});
 
 server.listen(port, () => {
   console.log(`server running on ${port}`);
