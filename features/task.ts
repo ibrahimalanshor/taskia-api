@@ -12,6 +12,11 @@ const newTaskSchema = z.object({
   name: z.string().min(1),
   dueDate: z.string().date(),
 });
+const updateTaskSchema = z.object({
+  name: z.string().min(1),
+  dueDate: z.string().date(),
+  status: z.enum(['todo', 'inprogress', 'done']),
+});
 
 taskRouter.get('/tasks', async (req: Request, res: Response) => {
   const queryValidation = await validate(getTaskSchema, req.query);
@@ -25,7 +30,7 @@ taskRouter.get('/tasks', async (req: Request, res: Response) => {
   const limit = queryValidation.data.limit ?? 10;
 
   const tasks = db
-    .prepare('SELECT name, due_date, status FROM tasks LIMIT ?')
+    .prepare('SELECT id, name, due_date dueDate, status FROM tasks LIMIT ?')
     .all(limit);
 
   res.json(tasks);
@@ -45,6 +50,41 @@ taskRouter.post('/tasks', async (req: Request, res: Response) => {
   const task = db
     .prepare('INSERT INTO tasks (name, due_date, status) VALUES (?, ?, ?)')
     .run(newTaskValidation.data.name, newTaskValidation.data.dueDate, 'todo');
+
+  res.json({
+    id: task.lastInsertRowid,
+  });
+
+  return;
+});
+
+taskRouter.put('/tasks/:id', async (req: Request, res: Response) => {
+  const updateTaskValidation = await validate(updateTaskSchema, req.body);
+
+  if (!updateTaskValidation.success) {
+    res.status(400).json(updateTaskValidation.errors);
+
+    return;
+  }
+
+  const taskExists = db
+    .prepare('SELECT id FROM tasks WHERE id = ?')
+    .get(req.params.id);
+
+  if (!taskExists) {
+    res.json(404).json({ message: 'task not found' });
+
+    return;
+  }
+
+  const task = db
+    .prepare('UPDATE tasks set name = ?, due_date = ?, status = ? WHERE id = ?')
+    .run(
+      updateTaskValidation.data.name,
+      updateTaskValidation.data.dueDate,
+      updateTaskValidation.data.status,
+      req.params.id,
+    );
 
   res.json({
     id: task.lastInsertRowid,
