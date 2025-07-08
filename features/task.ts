@@ -72,22 +72,40 @@ taskRouter.put('/tasks/:id', async (req: Request, res: Response) => {
     .get(req.params.id);
 
   if (!taskExists) {
-    res.json(404).json({ message: 'task not found' });
+    res.json(404).json({ message: 'Task not found' });
 
     return;
   }
 
-  const task = db
-    .prepare('UPDATE tasks set name = ?, due_date = ?, status = ? WHERE id = ?')
-    .run(
-      updateTaskValidation.data.name,
-      updateTaskValidation.data.dueDate,
-      updateTaskValidation.data.status,
-      req.params.id,
-    );
+  db.prepare(
+    'UPDATE tasks set name = ?, due_date = ?, status = ? WHERE id = ?',
+  ).run(
+    updateTaskValidation.data.name,
+    updateTaskValidation.data.dueDate,
+    updateTaskValidation.data.status,
+    req.params.id,
+  );
 
   res.json({
-    id: task.lastInsertRowid,
+    message: 'Ok',
+  });
+
+  return;
+});
+
+taskRouter.delete('/tasks/:id', async (req: Request, res: Response) => {
+  const deleted = db
+    .prepare('DELETE FROM tasks WHERE id = ?')
+    .run(req.params.id);
+
+  if (deleted.changes < 1) {
+    res.status(404).json({ message: 'Task not found' });
+
+    return;
+  }
+
+  res.json({
+    message: 'Ok',
   });
 
   return;
