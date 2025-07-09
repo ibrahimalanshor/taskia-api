@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import z from 'zod';
 import { validate } from '../lib/validation';
 import { db } from '../lib/db';
+import { checkAuth } from '../lib/auth';
 
 const taskRouter = Router();
 
@@ -19,6 +20,14 @@ const updateTaskSchema = z.object({
 });
 
 taskRouter.get('/tasks', async (req: Request, res: Response) => {
+  const authStatus = await checkAuth(req);
+
+  if (!authStatus.success) {
+    res.status(401).json({ message: authStatus.errors });
+
+    return;
+  }
+
   const queryValidation = await validate(getTaskSchema, req.query);
 
   if (!queryValidation.success) {
@@ -39,6 +48,14 @@ taskRouter.get('/tasks', async (req: Request, res: Response) => {
 });
 
 taskRouter.post('/tasks', async (req: Request, res: Response) => {
+  const authStatus = await checkAuth(req);
+
+  if (!authStatus.success) {
+    res.status(401).json({ message: authStatus.errors });
+
+    return;
+  }
+
   const newTaskValidation = await validate(newTaskSchema, req.body);
 
   if (!newTaskValidation.success) {
@@ -59,6 +76,14 @@ taskRouter.post('/tasks', async (req: Request, res: Response) => {
 });
 
 taskRouter.put('/tasks/:id', async (req: Request, res: Response) => {
+  const authStatus = await checkAuth(req);
+
+  if (!authStatus.success) {
+    res.status(401).json({ message: authStatus.errors });
+
+    return;
+  }
+
   const updateTaskValidation = await validate(updateTaskSchema, req.body);
 
   if (!updateTaskValidation.success) {
@@ -94,6 +119,14 @@ taskRouter.put('/tasks/:id', async (req: Request, res: Response) => {
 });
 
 taskRouter.delete('/tasks/:id', async (req: Request, res: Response) => {
+  const authStatus = await checkAuth(req);
+
+  if (!authStatus.success) {
+    res.status(401).json({ message: authStatus.errors });
+
+    return;
+  }
+
   const deleted = db
     .prepare('DELETE FROM tasks WHERE id = ?')
     .run(req.params.id);
