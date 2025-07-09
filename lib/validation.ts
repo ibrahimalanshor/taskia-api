@@ -1,8 +1,10 @@
 import z, { ZodSchema } from 'zod';
+import { Response } from '../helpers/response';
 
-type ValidationResult<T extends ZodSchema> =
-  | { success: true; data: z.infer<T> }
-  | { success: false; errors: Record<string, string> };
+type ValidationResult<T extends ZodSchema> = Response<
+  z.infer<T>,
+  Record<string, string>
+>;
 
 export async function validate<T extends ZodSchema>(
   schema: T,
