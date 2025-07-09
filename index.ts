@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import cors from 'cors';
 import { googleLoginRouter } from './features/google-login';
 import { taskRouter } from './features/task';
+import { authRouter } from './features/auth';
 
 const port = process.env.PORT;
 
@@ -13,6 +14,7 @@ server.use(cors());
 server.use(express.json());
 server.use(morgan('tiny'));
 
+server.use(authRouter);
 server.use(googleLoginRouter);
 server.use(taskRouter);
 
