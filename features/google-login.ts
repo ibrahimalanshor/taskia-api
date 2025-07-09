@@ -5,13 +5,8 @@ import z from 'zod';
 import jwt from 'jsonwebtoken';
 import { db } from '../lib/db';
 import { validate } from '../lib/validation';
+import { User } from './user';
 
-interface User {
-  id: number | bigint;
-  name: string;
-  email: string;
-  google_id: string;
-}
 interface AuthResult {
   user: User;
   accessToken: string;
