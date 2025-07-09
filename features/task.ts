@@ -8,6 +8,7 @@ const taskRouter = Router();
 
 const getTaskSchema = z.object({
   limit: z.number().positive().optional(),
+  offset: z.number().positive().optional(),
 });
 const newTaskSchema = z.object({
   name: z.string().min(1),
@@ -36,11 +37,13 @@ taskRouter.get('/tasks', async (req: Request, res: Response) => {
     return;
   }
 
-  const limit = queryValidation.data.limit ?? 10;
+  const { limit = 10, offset = 0 } = queryValidation.data;
 
   const tasks = db
-    .prepare('SELECT id, name, due_date dueDate, status FROM tasks LIMIT ?')
-    .all(limit);
+    .prepare(
+      'SELECT id, name, due_date dueDate, status FROM tasks LIMIT ? OFFSET ?',
+    )
+    .all(limit, offset);
 
   res.json(tasks);
 

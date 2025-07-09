@@ -6,5 +6,8 @@
 - [x] Get google info
 - [x] Create or update user by google info
 - [x] Generate user access token
-- [ ] Endpoint task resources
-- [ ] Task repository
+- [x] Endpoint task resources
+- [x] Task repository
+- [ ] Logout
+- [ ] Refresh Token
+- [ ] Task User Id
