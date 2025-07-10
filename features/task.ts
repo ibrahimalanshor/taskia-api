@@ -11,11 +11,9 @@ const getTaskSchema = z.object({
 });
 const newTaskSchema = z.object({
   name: z.string().min(1),
-  dueDate: z.string().date(),
 });
 const updateTaskSchema = z.object({
   name: z.string().min(1),
-  dueDate: z.string().date(),
   status: z.enum(['todo', 'inprogress', 'done']),
 });
 
@@ -36,9 +34,7 @@ taskRouter.get('/tasks', async (req: Request, res: Response) => {
     return;
   }
 
-  const stmts: string[] = [
-    'SELECT id, name, due_date dueDate, status FROM tasks',
-  ];
+  const stmts: string[] = ['SELECT id, name, status FROM tasks'];
   const binds: string[] = [];
 
   if (getTaskQuery.data.not_status) {
@@ -75,8 +71,8 @@ taskRouter.post('/tasks', async (req: Request, res: Response) => {
   }
 
   const task = db
-    .prepare('INSERT INTO tasks (name, due_date, status) VALUES (?, ?, ?)')
-    .run(newTaskValidation.data.name, newTaskValidation.data.dueDate, 'todo');
+    .prepare('INSERT INTO tasks (name, status) VALUES (?, ?)')
+    .run(newTaskValidation.data.name, 'todo');
 
   res.json({
     id: task.lastInsertRowid,
@@ -112,11 +108,8 @@ taskRouter.put('/tasks/:id', async (req: Request, res: Response) => {
     return;
   }
 
-  db.prepare(
-    'UPDATE tasks set name = ?, due_date = ?, status = ? WHERE id = ?',
-  ).run(
+  db.prepare('UPDATE tasks set name = ?, status = ? WHERE id = ?').run(
     updateTaskValidation.data.name,
-    updateTaskValidation.data.dueDate,
     updateTaskValidation.data.status,
     req.params.id,
   );

@@ -7,5 +7,5 @@ db.exec(
 
 db.exec('DROP TABLE IF EXISTS tasks');
 db.exec(
-  'CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, due_date TEXT NOT NULL, status TEXT NOT NULL)',
+  'CREATE TABLE tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, status TEXT NOT NULL)',
 );
