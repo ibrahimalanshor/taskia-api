@@ -1,3 +1,3 @@
 import Database from 'better-sqlite3';
 
-export const db = new Database('../taskia.db');
+export const db = new Database(process.env.DB_PATH || 'taskia.db');
