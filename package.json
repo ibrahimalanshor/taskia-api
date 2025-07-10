@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky",
     "dev": "nodemon index.ts",
-    "setup-db": "ts-node setup-db.ts"
+    "setup-db": "ts-node setup-db.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "repository": {
     "type": "git",
