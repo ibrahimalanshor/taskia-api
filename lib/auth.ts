@@ -23,7 +23,7 @@ export async function checkAuth(
   try {
     const payload = (await jwt.verify(
       token,
-      process.env.SECRET || 'secret',
+      process.env.AUTH_SECRET_KEY || 'secret',
     )) as { user_id: string };
     const userId = payload.user_id;
 

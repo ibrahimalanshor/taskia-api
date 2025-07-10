@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { db } from '../lib/db';
 import { validate } from '../lib/validation';
 import { User } from './user';
+import type { StringValue } from 'ms';
 
 interface AuthResult {
   user: User;
@@ -26,26 +27,30 @@ const googleLoginSchema = z.object({
 });
 const googleLoginRouter = Router();
 
-async function generateAuthResult(user: User): Promise<AuthResult> {
+function generateAuthResult(user: User): AuthResult {
+  const expiresIn = (process.env.AUTH_EXPIRES_IN || '15m') as StringValue;
+
   return {
     user,
-    accessToken: await jwt.sign(
+    accessToken: jwt.sign(
       { user_id: user.id },
-      process.env.SECRET_KEY || 'secret',
-      { expiresIn: '15m' },
+      process.env.AUTH_SECRET_KEY || 'secret',
+      {
+        expiresIn,
+      },
     ),
   };
 }
-async function register(googleAccount: {
+function register(googleAccount: {
   id: string;
   name: string;
   email: string;
-}): Promise<AuthResult> {
+}): AuthResult {
   const user = db
     .prepare('INSERT INTO users (google_id, name, email) VALUES (?, ?, ?)')
     .run(googleAccount.id, googleAccount.name, googleAccount.email);
 
-  return await generateAuthResult({
+  return generateAuthResult({
     id: user.lastInsertRowid,
     name: googleAccount.name,
     email: googleAccount.email,
@@ -88,7 +93,7 @@ googleLoginRouter.post(
 
     if (!user) {
       res.json(
-        await register({
+        register({
           id: googleAccount.data.id,
           name: googleAccount.data.name,
           email: googleAccount.data.email,
@@ -106,7 +111,7 @@ googleLoginRouter.post(
       return;
     }
 
-    res.json(await generateAuthResult(user));
+    res.json(generateAuthResult(user));
 
     return;
   },
