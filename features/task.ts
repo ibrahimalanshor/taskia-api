@@ -6,6 +6,9 @@ import { checkAuth } from '../lib/auth';
 
 const taskRouter = Router();
 
+const getTaskSchema = z.object({
+  not_status: z.enum(['todo', 'inprogress', 'done']).optional(),
+});
 const newTaskSchema = z.object({
   name: z.string().min(1),
   dueDate: z.string().date(),
@@ -25,11 +28,29 @@ taskRouter.get('/tasks', async (req: Request, res: Response) => {
     return;
   }
 
-  const tasks = db
-    .prepare(
-      `SELECT id, name, due_date dueDate, status FROM tasks ORDER BY CASE WHEN status = 'inprogress' THEN 1 WHEN status = 'todo' THEN 2 ELSE 3 END, due_date`,
-    )
-    .all();
+  const getTaskQuery = await validate(getTaskSchema, req.query);
+
+  if (!getTaskQuery.success) {
+    res.status(400).json(getTaskQuery.errors);
+
+    return;
+  }
+
+  const stmts: string[] = [
+    'SELECT id, name, due_date dueDate, status FROM tasks',
+  ];
+  const binds: string[] = [];
+
+  if (getTaskQuery.data.not_status) {
+    stmts.push('WHERE status != ?');
+    binds.push(getTaskQuery.data.not_status);
+  }
+
+  stmts.push(
+    `ORDER BY CASE WHEN status = 'inprogress' THEN 1 WHEN status = 'todo' THEN 2 ELSE 3 END`,
+  );
+
+  const tasks = db.prepare(stmts.join(' ')).all(...binds);
 
   res.json(tasks);
 
