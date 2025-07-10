@@ -6,10 +6,6 @@ import { checkAuth } from '../lib/auth';
 
 const taskRouter = Router();
 
-const getTaskSchema = z.object({
-  limit: z.number().positive().optional(),
-  offset: z.number().positive().optional(),
-});
 const newTaskSchema = z.object({
   name: z.string().min(1),
   dueDate: z.string().date(),
@@ -29,21 +25,11 @@ taskRouter.get('/tasks', async (req: Request, res: Response) => {
     return;
   }
 
-  const queryValidation = await validate(getTaskSchema, req.query);
-
-  if (!queryValidation.success) {
-    res.status(400).json(queryValidation.errors);
-
-    return;
-  }
-
-  const { limit = 10, offset = 0 } = queryValidation.data;
-
   const tasks = db
     .prepare(
-      'SELECT id, name, due_date dueDate, status FROM tasks LIMIT ? OFFSET ?',
+      `SELECT id, name, due_date dueDate, status FROM tasks ORDER BY CASE WHEN status = 'inprogress' THEN 1 WHEN status = 'todo' THEN 2 ELSE 3 END, due_date`,
     )
-    .all(limit, offset);
+    .all();
 
   res.json(tasks);
 
