@@ -11,3 +11,10 @@
 - [ ] Logout
 - [ ] Refresh Token
 - [ ] Task User Id
+- [ ] Task filter not_status
+- [ ] Task filter dueDate
+- [ ] Task filter status
+
+## Upcoming
+
+- [ ] Task category
