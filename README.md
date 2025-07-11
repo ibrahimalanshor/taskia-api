@@ -10,10 +10,8 @@
 - [x] Task repository
 - [ ] Logout
 - [ ] Refresh Token
-- [ ] Task User Id
-- [ ] Task filter not_status
-- [ ] Task filter dueDate
-- [ ] Task filter status
+- [x] Task User Id
+- [x] Task filter not_status
 
 ## Upcoming
 

@@ -34,11 +34,13 @@ taskRouter.get('/tasks', async (req: Request, res: Response) => {
     return;
   }
 
-  const stmts: string[] = ['SELECT id, name, status FROM tasks'];
-  const binds: string[] = [];
+  const stmts: string[] = [
+    'SELECT id, name, status FROM tasks WHERE user_id = ?',
+  ];
+  const binds: (string | number | bigint)[] = [authStatus.data.user.id];
 
   if (getTaskQuery.data.not_status) {
-    stmts.push('WHERE status != ?');
+    stmts.push('AND status != ?');
     binds.push(getTaskQuery.data.not_status);
   }
 
@@ -71,8 +73,8 @@ taskRouter.post('/tasks', async (req: Request, res: Response) => {
   }
 
   const task = db
-    .prepare('INSERT INTO tasks (name, status) VALUES (?, ?)')
-    .run(newTaskValidation.data.name, 'todo');
+    .prepare('INSERT INTO tasks (name, status, user_id) VALUES (?, ?, ?)')
+    .run(newTaskValidation.data.name, 'todo', authStatus.data.user.id);
 
   res.json({
     id: task.lastInsertRowid,
@@ -99,8 +101,8 @@ taskRouter.put('/tasks/:id', async (req: Request, res: Response) => {
   }
 
   const taskExists = db
-    .prepare('SELECT id FROM tasks WHERE id = ?')
-    .get(req.params.id);
+    .prepare('SELECT id FROM tasks WHERE id = ? AND user_id = ?')
+    .get(req.params.id, authStatus.data.user.id);
 
   if (!taskExists) {
     res.json(404).json({ message: 'Task not found' });
@@ -131,8 +133,8 @@ taskRouter.delete('/tasks/:id', async (req: Request, res: Response) => {
   }
 
   const deleted = db
-    .prepare('DELETE FROM tasks WHERE id = ?')
-    .run(req.params.id);
+    .prepare('DELETE FROM tasks WHERE id = ? AND user_id = ?')
+    .run(req.params.id, authStatus.data.user.id);
 
   if (deleted.changes < 1) {
     res.status(404).json({ message: 'Task not found' });
